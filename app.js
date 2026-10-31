@@ -720,6 +720,12 @@
   $('#replaceTransparency').addEventListener('change', (event) => {
     $('#transparencyColor').disabled = !event.target.checked;
   });
+  $('#previewGridToggle').addEventListener('change', (event) => {
+    $('#previewStage').classList.toggle('grid-off', !event.target.checked);
+  });
+  $('#transparencyColor').addEventListener('input', (event) => {
+    $('#previewStage').style.setProperty('--preview-solid-background', event.target.value);
+  });
   $('#durationPreset').addEventListener('change', (event) => {
     if (event.target.value === 'custom') {
       $('#customDuration').focus();
@@ -746,5 +752,6 @@
     document.documentElement.dataset.theme = 'dark';
     $('#themeToggle').textContent = '☼';
   }
+  $('#previewStage').style.setProperty('--preview-solid-background', $('#transparencyColor').value);
   updateStats();
 })();

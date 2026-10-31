@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f4f3ed" />
+    <meta name="description" content="여러 PNG 픽셀 프레임의 순서를 정하고 프레임 간격을 설정해 애니메이션 GIF로 내보내는 독립 웹앱." />
+    <title>Pixel Motion Studio · GIF 제작기</title>
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="./" aria-label="Pixel Motion Studio 홈">
+          <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+          <span>pixel<span class="brand-muted">motion</span></span>
+        </a>
+        <span class="independent-badge">STANDALONE GIF STUDIO</span>
+        <div class="top-actions">
+          <button id="themeToggle" class="icon-button" type="button" aria-label="테마 전환" title="테마 전환">◐</button>
+          <button id="addFramesTop" class="button button-primary" type="button">＋ PNG 프레임 추가</button>
+        </div>
+      </header>
+
+      <section class="intro">
+        <div>
+          <p class="eyebrow">FRAME SEQUENCE <span>→</span> ANIMATED GIF</p>
+          <h1>픽셀 프레임을 이어,<br /><em>움직이는 GIF로.</em></h1>
+          <p class="intro-copy">PNG를 순서대로 모으고 재생 속도를 정해 바로 내보내세요.<br />이미지는 편집하지 않고 순서와 재생 설정만 관리합니다.</p>
+        </div>
+        <div class="stat-card">
+          <span class="stat-icon">▧</span>
+          <div><strong id="frameCountHero">0 frames</strong><small>불러온 PNG 시퀀스</small></div>
+          <span class="stat-divider"></span>
+          <div><strong id="canvasSizeHero">— × —</strong><small>GIF 출력 크기</small></div>
+        </div>
+      </section>
+
+      <section class="workspace" aria-label="GIF 프레임 작업 공간">
+        <aside class="frame-panel panel">
+          <div class="panel-heading"><span>01</span><div><h2>프레임 순서</h2><p>드래그하거나 화살표로 이동</p></div><span class="heading-rule"></span></div>
+          <div class="frame-actions">
+            <button id="addFrames" class="button button-secondary" type="button">＋ PNG 추가</button>
+            <button id="clearFrames" class="text-button" type="button" disabled>모두 비우기</button>
+          </div>
+          <input id="fileInput" type="file" accept="image/png,.png" multiple hidden />
+          <div id="dropZone" class="drop-zone" tabindex="0" role="button" aria-label="PNG 파일 놓기 또는 선택하기">
+            <span class="drop-icon">↥</span><strong>PNG를 여기에 놓으세요</strong><small>한 장 또는 여러 장을 한 번에 추가</small>
+          </div>
+          <div class="list-heading"><span>재생 순서</span><span id="frameCount">0장</span></div>
+          <ol id="frameList" class="frame-list" aria-label="애니메이션 프레임 목록"></ol>
+          <div id="emptyHint" class="empty-hint">PNG를 불러오면<br />여기에 프레임이 표시됩니다.</div>
+        </aside>
+
+        <section class="preview-column panel" aria-label="애니메이션 미리보기">
+          <div class="preview-toolbar">
+            <div class="panel-heading"><span>02</span><div><h2>미리보기</h2><p id="previewCaption">프레임을 불러와 시작하세요</p></div></div>
+            <div class="preview-controls">
+              <button id="previousFrame" class="icon-button" type="button" aria-label="이전 프레임" title="이전 프레임" disabled>‹</button>
+              <button id="playButton" class="play-button" type="button" disabled><span id="playIcon">▶</span><span id="playText">재생</span></button>
+              <button id="nextFrame" class="icon-button" type="button" aria-label="다음 프레임" title="다음 프레임" disabled>›</button>
+            </div>
+          </div>
+          <div id="previewStage" class="preview-stage">
+            <div id="previewEmpty" class="preview-empty"><div class="empty-glyph">▧</div><strong>프레임이 아직 없습니다</strong><span>PNG 시퀀스를 불러오면 이곳에서 움직임을 확인할 수 있어요.</span></div>
+            <canvas id="previewCanvas" aria-label="애니메이션 프레임 미리보기" hidden></canvas>
+            <div class="stage-corner stage-top-left">PIXEL PREVIEW</div>
+            <div class="stage-corner stage-bottom-right" id="stageFrameLabel">FRAME — / —</div>
+          </div>
+          <div class="preview-footer">
+            <div class="scrubber-wrap"><input id="frameScrubber" type="range" min="0" max="0" value="0" aria-label="프레임 선택" disabled /><div class="scrubber-labels"><span>첫 프레임</span><span id="durationSummary">루프 길이 —</span><span>마지막 프레임</span></div></div>
+            <div class="format-note"><span class="status-dot"></span><span>PNG 원본 픽셀 유지 · 투명도 지원</span></div>
+          </div>
+        </section>
+
+        <aside class="settings-panel panel">
+          <div class="panel-heading"><span>03</span><div><h2>GIF 설정</h2><p>프레임별 재생 시간</p></div><span class="heading-rule"></span></div>
+          <label class="field-label" for="durationPreset">간격 프리셋</label>
+          <select id="durationPreset" class="field-control">
+            <option value="50">매우 빠름 · 0.05초 / 20 FPS</option>
+            <option value="80">빠름 · 0.08초 / 12.5 FPS</option>
+            <option value="100" selected>기본 · 0.10초 / 10 FPS</option>
+            <option value="150">부드럽게 · 0.15초 / 약 6.7 FPS</option>
+            <option value="250">천천히 · 0.25초 / 4 FPS</option>
+            <option value="500">정지감 · 0.50초 / 2 FPS</option>
+            <option value="custom">직접 입력</option>
+          </select>
+          <label class="field-label" for="customDuration">프레임당 표시 시간 <span>초</span></label>
+          <div class="number-wrap"><input id="customDuration" type="number" min="0.02" max="10" step="0.01" value="0.10" /><span>초 / 프레임</span></div>
+          <p class="field-help">GIF는 0.01초 단위로 저장됩니다. 최소 간격은 0.02초입니다.</p>
+
+          <div class="settings-divider"></div>
+          <div class="setting-row"><div><strong>반복 재생</strong><small>계속 반복되는 GIF</small></div><label class="switch"><input id="loopToggle" type="checkbox" checked /><span></span></label></div>
+          <div class="settings-divider"></div>
+          <div class="output-card"><span class="output-icon">▧</span><div><strong>출력 크기 자동 맞춤</strong><small>가장 큰 PNG 크기 기준, 작은 프레임은 가운데 배치</small></div></div>
+          <div class="output-stats"><span>팔레트</span><strong>최대 256색</strong><span>투명 픽셀</span><strong>유지</strong></div>
+          <div class="settings-spacer"></div>
+          <button id="exportButton" class="export-button" type="button" disabled><span>↓</span> GIF 내보내기</button>
+          <p id="statusMessage" class="status-message" aria-live="polite">PNG 프레임을 추가하면 내보낼 수 있습니다.</p>
+        </aside>
+      </section>
+
+      <footer class="footer"><span>PIXEL MOTION STUDIO <span>·</span> 독립 서브프로젝트</span><span>이미지는 수정하지 않고 프레임 순서와 재생만 설정합니다.</span></footer>
+    </main>
+    <script src="./app.js"></script>
+  </body>
+</html>

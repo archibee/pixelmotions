@@ -37,7 +37,7 @@ This guide belongs only to `SubProjects/PixelMotionStudio/`. Pixel Motion Studio
 - `qualityMode=high` is the default and applies Floyd–Steinberg dithering to a shared palette; `qualityMode=crisp` uses exact source RGB values with nearest-palette mapping and no dithering. Both modes retain native frame dimensions and GIF's 256-entry color limit.
 - When changing encoding, validate more than the GIF header and frame count: decode output with an independent GIF decoder and compare sample pixels in early and later frames, including transparent pixels.
 - Keep resource guards for excessive frame counts and aggregate output pixels. These guards reject an export; they do not resize frames. Give an actionable status message when a sequence exceeds them.
-- The local demon-maid source image and v1–v4 example frames live under `../private-image-assets-saver/`, outside this Git repository. The example PowerShell generators use that archive by default and accept `-AssetRoot` for another location.
+- The local demon-maid source image and v1–v5 example frames live under `../private-image-assets-saver/`, outside this Git repository. v5 has its own edited source snapshot that removes the extra lower skirt layer while retaining the one attached lace hem; do not replace the canonical source or earlier version snapshots. Example PowerShell generators use that archive by default and accept `-AssetRoot` for another location.
 - Keep raster source images and generated frame PNGs out of this project tree. If regenerating an example, write its output into the corresponding archive sequence folder so the project remains code-and-documentation only.
 
 ## User-facing limits

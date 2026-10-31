@@ -21,7 +21,7 @@ GIF encoding is implemented locally without a runtime library. Its LZW stream pe
 
 ## Archived sample sequences
 
-The demon-maid PNG sources and animation frames are kept outside this project in the sibling `../private-image-assets-saver/` data archive. The `examples/` folders here contain only descriptions and frame-generation scripts. Import the archived `frames/` folder for the version you want. Running a generator writes its PNG output back into that private archive; pass `-AssetRoot` if it lives elsewhere.
+The demon-maid PNG sources and animation frames are kept outside this project in the sibling `../private-image-assets-saver/` data archive. The `examples/` folders here contain only descriptions and frame-generation scripts. Versions v1–v5 are archived there; v5 uses its own edited source snapshot with a single-layer skirt. Import the archived `frames/` folder for the version you want. Running a generator writes its PNG output back into that private archive; pass `-AssetRoot` if it lives elsewhere.
 
 ## Files
 

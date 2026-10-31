@@ -330,15 +330,13 @@
     return ((r >> 3) << 10) | ((g >> 3) << 5) | (b >> 3);
   }
 
-  function histogramColor(key) {
-    return [((key >> 10) & 31) * 8 + 4, ((key >> 5) & 31) * 8 + 4, (key & 31) * 8 + 4];
-  }
-
   function makeGlobalPalette(histogram, limit) {
-    let boxes = [[...histogram.entries()].map(([key, count]) => {
-      const [r, g, b] = histogramColor(key);
-      return { r, g, b, count };
-    })];
+    let boxes = [[...histogram.values()].map((color) => ({
+      r: color.r / color.count,
+      g: color.g / color.count,
+      b: color.b / color.count,
+      count: color.count
+    }))];
     if (!boxes[0].length) boxes = [];
     while (boxes.length < limit) {
       let chosen = -1;
@@ -412,11 +410,98 @@
     return bestIndex;
   }
 
-  function mapFramesToPalette(rasters, palette, hasTransparency) {
+  function buildDitherLookup(palette, startIndex) {
+    const lookup = new Uint8Array(1 << 15);
+    for (let r = 0; r < 32; r++) {
+      for (let g = 0; g < 32; g++) {
+        for (let b = 0; b < 32; b++) {
+          const key = (r << 10) | (g << 5) | b;
+          lookup[key] = nearestColorIndex(r * 8 + 4, g * 8 + 4, b * 8 + 4, palette, startIndex);
+        }
+      }
+    }
+    return lookup;
+  }
+
+  async function mapFrameWithDithering(raster, width, height, lookup, palette, hasTransparency) {
     const visibleStart = hasTransparency ? 1 : 0;
+    const indexes = new Uint8Array(width * height);
+    let currentR = new Float32Array(width + 2);
+    let currentG = new Float32Array(width + 2);
+    let currentB = new Float32Array(width + 2);
+    let nextR = new Float32Array(width + 2);
+    let nextG = new Float32Array(width + 2);
+    let nextB = new Float32Array(width + 2);
+
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const pixelIndex = y * width + x;
+        const sourceIndex = pixelIndex * 4;
+        if (hasTransparency && raster[sourceIndex + 3] < 128) {
+          indexes[pixelIndex] = 0;
+          continue;
+        }
+
+        let errorIndex = x + 1;
+        const r = Math.max(0, Math.min(255, raster[sourceIndex] + currentR[errorIndex]));
+        const g = Math.max(0, Math.min(255, raster[sourceIndex + 1] + currentG[errorIndex]));
+        const b = Math.max(0, Math.min(255, raster[sourceIndex + 2] + currentB[errorIndex]));
+        const lookupKey = ((r >> 3) << 10) | ((g >> 3) << 5) | (b >> 3);
+        const paletteIndex = lookup[lookupKey];
+        indexes[pixelIndex] = paletteIndex;
+
+        const color = palette[paletteIndex] || palette[visibleStart];
+        const errorR = r - color[0];
+        const errorG = g - color[1];
+        const errorB = b - color[2];
+        if (x + 1 < width && (!hasTransparency || raster[sourceIndex + 7] >= 128)) {
+          currentR[errorIndex + 1] += errorR * (7 / 16);
+          currentG[errorIndex + 1] += errorG * (7 / 16);
+          currentB[errorIndex + 1] += errorB * (7 / 16);
+        }
+        if (y + 1 < height) {
+          const below = sourceIndex + width * 4;
+          if (x > 0 && (!hasTransparency || raster[below - 1] >= 128)) {
+            nextR[errorIndex - 1] += errorR * (3 / 16);
+            nextG[errorIndex - 1] += errorG * (3 / 16);
+            nextB[errorIndex - 1] += errorB * (3 / 16);
+          }
+          if (!hasTransparency || raster[below + 3] >= 128) {
+            nextR[errorIndex] += errorR * (5 / 16);
+            nextG[errorIndex] += errorG * (5 / 16);
+            nextB[errorIndex] += errorB * (5 / 16);
+          }
+          if (x + 1 < width && (!hasTransparency || raster[below + 7] >= 128)) {
+            nextR[errorIndex + 1] += errorR * (1 / 16);
+            nextG[errorIndex + 1] += errorG * (1 / 16);
+            nextB[errorIndex + 1] += errorB * (1 / 16);
+          }
+        }
+      }
+
+      [currentR, nextR] = [nextR, currentR];
+      [currentG, nextG] = [nextG, currentG];
+      [currentB, nextB] = [nextB, currentB];
+      nextR.fill(0);
+      nextG.fill(0);
+      nextB.fill(0);
+      if ((y + 1) % 64 === 0) await new Promise((resolve) => setTimeout(resolve, 0));
+    }
+    return indexes;
+  }
+
+  async function mapFramesToPalette(rasters, width, height, palette, hasTransparency, dither) {
+    const visibleStart = hasTransparency ? 1 : 0;
+    const lookup = dither ? buildDitherLookup(palette, visibleStart) : null;
     const colorMap = new Map();
     const indexes = [];
-    for (const raster of rasters) {
+    for (let frameIndex = 0; frameIndex < rasters.length; frameIndex++) {
+      const raster = rasters[frameIndex];
+      if (dither) {
+        indexes.push(await mapFrameWithDithering(raster, width, height, lookup, palette, hasTransparency));
+        setStatus(`고품질 색상 변환 중… ${frameIndex + 1}/${rasters.length}`);
+        continue;
+      }
       const frameIndexes = new Uint8Array(raster.length / 4);
       for (let sourceIndex = 0, pixelIndex = 0; sourceIndex < raster.length; sourceIndex += 4, pixelIndex++) {
         const alpha = raster[sourceIndex + 3];
@@ -427,7 +512,7 @@
         const r = raster[sourceIndex];
         const g = raster[sourceIndex + 1];
         const b = raster[sourceIndex + 2];
-        const key = histogramKey(r, g, b);
+        const key = rgbKey(r, g, b);
         let paletteIndex = colorMap.get(key);
         if (paletteIndex === undefined) {
           paletteIndex = nearestColorIndex(r, g, b, palette, visibleStart);
@@ -436,6 +521,8 @@
         frameIndexes[pixelIndex] = paletteIndex;
       }
       indexes.push(frameIndexes);
+      setStatus(`색상 변환 중… ${frameIndex + 1}/${rasters.length}`);
+      await new Promise((resolve) => setTimeout(resolve, 0));
     }
     return indexes;
   }
@@ -555,6 +642,7 @@
       const rasters = [];
       const histogram = new Map();
       let hasTransparency = false;
+      const dither = $('#qualityMode').value === 'high';
       for (let frameIndex = 0; frameIndex < state.frames.length; frameIndex++) {
         const frame = state.frames[frameIndex];
         exportContext.clearRect(0, 0, width, height);
@@ -567,13 +655,21 @@
             continue;
           }
           const key = histogramKey(raster[i], raster[i + 1], raster[i + 2]);
-          histogram.set(key, (histogram.get(key) || 0) + 1);
+          let color = histogram.get(key);
+          if (!color) {
+            color = { r: 0, g: 0, b: 0, count: 0 };
+            histogram.set(key, color);
+          }
+          color.r += raster[i];
+          color.g += raster[i + 1];
+          color.b += raster[i + 2];
+          color.count++;
         }
         if (frameIndex % 12 === 0) setStatus(`색상 분석 중… ${frameIndex + 1}/${state.frames.length}`);
         await new Promise((resolve) => setTimeout(resolve, 0));
       }
       const palette = buildGifPalette(histogram, hasTransparency);
-      const indexes = mapFramesToPalette(rasters, palette, hasTransparency);
+      const indexes = await mapFramesToPalette(rasters, width, height, palette, hasTransparency, dither);
       const blob = makeGif(rasters, width, height, state.durationMs, $('#loopToggle').checked, hasTransparency, palette, indexes);
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement('a');

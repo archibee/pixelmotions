@@ -13,7 +13,7 @@ Open `index.html` in a modern browser. The project uses plain HTML, CSS and Java
 3. Choose a frame interval preset or enter a custom value in seconds per image. GIF timing is stored in hundredths of a second, with a minimum frame delay of 0.02 seconds.
 4. Preview the sequence, choose whether it loops forever, then export `pixel-motion.gif`.
 
-No image editing is provided. Export dimensions use the largest source width and height; smaller images stay at their original pixel dimensions and are centered on a transparent canvas. The encoder uses one shared palette of up to 256 colors for consistent colors between frames. PNG pixels with alpha below 128 become transparent; partial alpha is reduced to binary transparency because GIF does not support partial opacity.
+No image editing is provided. Export dimensions use the largest source width and height; smaller images stay at their original pixel dimensions and are centered on a transparent canvas. Frames are not downscaled. GIF is limited to 256 palette entries; with transparency, one entry is reserved for transparent pixels. The default `고품질 · 디더링` mode builds a shared palette from weighted source colors and diffuses quantization error to preserve gradients and shading. Choose `선명한 도트 · 디더링 없음` for crisp edges without added texture. PNG pixels with alpha below 128 become transparent; partial alpha is reduced to binary transparency because GIF does not support partial opacity.
 
 GIF encoding is implemented locally without a runtime library. Its LZW stream periodically resets the dictionary to avoid code-width boundary corruption in decoders; this favors reliable playback over the smallest possible file, so exports may be somewhat larger.
 

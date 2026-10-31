@@ -643,9 +643,15 @@
       const histogram = new Map();
       let hasTransparency = false;
       const dither = $('#qualityMode').value === 'high';
+      const replaceTransparency = $('#replaceTransparency').checked;
+      const transparencyColor = $('#transparencyColor').value;
       for (let frameIndex = 0; frameIndex < state.frames.length; frameIndex++) {
         const frame = state.frames[frameIndex];
         exportContext.clearRect(0, 0, width, height);
+        if (replaceTransparency) {
+          exportContext.fillStyle = transparencyColor;
+          exportContext.fillRect(0, 0, width, height);
+        }
         exportContext.drawImage(frame.bitmap, Math.floor((width - frame.width) / 2), Math.floor((height - frame.height) / 2));
         const raster = exportContext.getImageData(0, 0, width, height).data;
         rasters.push(raster);
@@ -711,6 +717,9 @@
   $('#playButton').addEventListener('click', togglePlayback);
   $('#frameScrubber').addEventListener('input', (event) => selectFrame(Number(event.target.value)));
   $('#exportButton').addEventListener('click', exportGif);
+  $('#replaceTransparency').addEventListener('change', (event) => {
+    $('#transparencyColor').disabled = !event.target.checked;
+  });
   $('#durationPreset').addEventListener('change', (event) => {
     if (event.target.value === 'custom') {
       $('#customDuration').focus();

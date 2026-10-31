@@ -6,6 +6,8 @@ Pixel Motion Studio is a small, standalone browser tool for turning an ordered l
 
 Open `index.html` in a modern browser. The project uses plain HTML, CSS and JavaScript, has no build step, package manager, backend or external runtime dependency.
 
+The production site is [pixelmotions.vercel.app](https://pixelmotions.vercel.app/). The document declares that URL as its canonical address and uses it in Open Graph metadata and the root sitemap. Root-level `robots.txt`, `sitemap.xml`, PNG/SVG favicons, an Apple touch icon and an Open Graph preview image are included for static deployment.
+
 ## Workflow
 
 1. Add one or more PNG files with the file picker or drop them in the frame panel. A multi-file batch is sorted naturally by filename (`frame2.png` before `frame10.png`). Files added later are appended.
@@ -29,5 +31,8 @@ The demon-maid PNG sources and animation frames are kept outside this project in
 - `styles.css`: responsive light/dark editor styling
 - `app.js`: PNG sequence handling, preview, palette generation and GIF89a/LZW encoder
 - `favicon.svg`: project icon
+- `favicon.png`, `apple-touch-icon.png`: raster browser/search and iOS icons
+- `og-image.png`: social sharing preview image
+- `robots.txt`, `sitemap.xml`: crawler access guidance and canonical homepage URL
 - `AGENTS.md`: project boundaries and implementation handoff
 

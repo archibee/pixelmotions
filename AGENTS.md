@@ -17,7 +17,10 @@ This guide belongs only to `SubProjects/PixelMotionStudio/`. Pixel Motion Studio
 | `styles.css` | Light/dark styling and responsive layout |
 | `app.js` | PNG import/order, preview timing, shared palette and GIF encoder |
 | `favicon.svg` | Pixel frame project icon |
-| `README.md` | User workflow, output behavior and GIF limitations |
+| `favicon.png`, `apple-touch-icon.png` | Raster browser/search and iOS icons; favicon stays square and at least 48×48 |
+| `og-image.png` | Open Graph and large social-card image (1200×630) |
+| `robots.txt`, `sitemap.xml` | Root crawler rules and canonical homepage URL |
+| `README.md` | User workflow, SEO deployment domain, output behavior and GIF limitations |
 | `examples/` | Per-version animation notes and PowerShell generators; PNG assets are kept outside this project in the sibling private archive. |
 
 ## Frame and export rules
@@ -47,4 +50,12 @@ This guide belongs only to `SubProjects/PixelMotionStudio/`. Pixel Motion Studio
 - GIF color budget is at most 256 shared colors, including the transparency slot if used. High-quality dithering is the default; the UI also offers a no-dither mode for sharp pixel-art edges.
 - Loop checkbox on means infinite looping; off means play once.
 - Do not claim that this app is connected to the parent Pixel Studio or any AI image model.
+
+## Public metadata and deployment
+
+- Production origin: `https://pixelmotions.vercel.app/`. Keep the HTML canonical URL, Open Graph URL/image, `robots.txt` sitemap declaration and sitemap `<loc>` in sync if the deployed hostname changes.
+- Keep title, Korean description, document language, Open Graph and Twitter card fields accurate to the browser-only PNG-to-GIF workflow. Do not promise indexing or search ranking.
+- `robots.txt` allows crawling and advertises the root sitemap. Do not block the homepage or favicon assets.
+- The sitemap lists only the canonical homepage because this is a single-page static tool. Use fully qualified HTTPS URLs and include `<lastmod>` only when it reflects a real page content update.
+- Google Search favicon eligibility uses a square favicon and recommends 48×48 or larger. Keep `favicon.png` stable and discoverable; the SVG remains a browser-compatible alternate.
 

@@ -17,6 +17,10 @@ No image editing is provided. Export dimensions use the largest source width and
 
 GIF encoding is implemented locally without a runtime library. Its LZW stream periodically resets the dictionary to avoid code-width boundary corruption in decoders; this favors reliable playback over the smallest possible file, so exports may be somewhat larger.
 
+## Archived sample sequences
+
+The demon-maid PNG sources and animation frames are kept outside this project in the sibling `../private-image-assets-saver/` data archive. The `examples/` folders here contain only descriptions and frame-generation scripts. Import the archived `frames/` folder for the version you want. Running a generator writes its PNG output back into that private archive; pass `-AssetRoot` if it lives elsewhere.
+
 ## Files
 
 - `index.html`: independent studio interface and metadata

@@ -18,6 +18,7 @@ This guide belongs only to `SubProjects/PixelMotionStudio/`. Pixel Motion Studio
 | `app.js` | PNG import/order, preview timing, shared palette and GIF encoder |
 | `favicon.svg` | Pixel frame project icon |
 | `README.md` | User workflow, output behavior and GIF limitations |
+| `examples/` | Per-version animation notes and PowerShell generators; PNG assets are kept outside this project in the sibling private archive. |
 
 ## Frame and export rules
 
@@ -32,6 +33,8 @@ This guide belongs only to `SubProjects/PixelMotionStudio/`. Pixel Motion Studio
 - GIF encoding is implemented locally in `app.js`: GIF89a logical screen/global color table, optional NETSCAPE loop extension, per-frame Graphic Control Extension and image descriptor, LZW data in sub-blocks, trailer byte. The encoder intentionally clears its LZW dictionary at safe short chunks to keep a fixed code width and avoid bit-alignment corruption at width transitions; do not remove this without independent pixel-level decoder verification.
 - When changing encoding, validate more than the GIF header and frame count: decode output with an independent GIF decoder and compare sample pixels in early and later frames, including transparent pixels.
 - Keep resource guards for excessive frame counts and aggregate output pixels. Give an actionable status message when a sequence exceeds them.
+- The local demon-maid source image and v1–v4 example frames live under `../private-image-assets-saver/`, outside this Git repository. The example PowerShell generators use that archive by default and accept `-AssetRoot` for another location.
+- Keep raster source images and generated frame PNGs out of this project tree. If regenerating an example, write its output into the corresponding archive sequence folder so the project remains code-and-documentation only.
 
 ## User-facing limits
 

@@ -6,6 +6,7 @@ This guide belongs only to `SubProjects/PixelMotionStudio/`. Pixel Motion Studio
 
 - Open this folder's `index.html` directly in a modern browser.
 - Keep the project buildless and dependency-free: no package manifest, bundler, framework, API, server or remote library.
+- Keep `studio-ui.css` local and framework-free. It follows the parent project's canonical `studio-ui.css`; synchronize both copies for shared token/control changes, preserve the independent frame/preview/settings layout, and keep `data-theme=light|dark` as the theme contract.
 - Project state lives in memory; only the light/dark preference is saved in local storage. Imported PNGs stay in the browser session and are not uploaded.
 - This tool sequences and exports frames. It intentionally does not draw on or modify imported images.
 
@@ -15,6 +16,7 @@ This guide belongs only to `SubProjects/PixelMotionStudio/`. Pixel Motion Studio
 | --- | --- |
 | `index.html` | Standalone frame-list, preview and export interface |
 | `styles.css` | Light/dark styling and responsive layout |
+| `studio-ui.css` | Local copy of the shared Pixel Studio family design tokens and component rules; keep synchronized with the parent `studio-ui.css` when both repositories are available |
 | `app.js` | PNG import/order, preview timing, shared palette and GIF encoder |
 | `favicon.svg` | Pixel frame project icon |
 | `favicon.png`, `apple-touch-icon.png` | Raster browser/search and iOS icons; favicon stays square and at least 48×48 |

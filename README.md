@@ -8,6 +8,10 @@ Open `index.html` in a modern browser. The project uses plain HTML, CSS and Java
 
 The production site is [pixelmotions.vercel.app](https://pixelmotions.vercel.app/). The document declares that URL as its canonical address and uses it in Open Graph metadata and the root sitemap. Root-level `robots.txt`, `sitemap.xml`, PNG/SVG favicons, an Apple touch icon and an Open Graph preview image are included for static deployment.
 
+## Shared studio interface
+
+Pixel Motion Studio follows the same Pixel Studio family UI system: matching light/dark color tokens, typography, page header, panel surfaces, control sizing, focus states and spacing. The frame queue, animation preview and GIF settings keep their own layout and behavior. `studio-ui.css` is a local copy so the app remains independently deployable; when changing shared styles, keep it identical to the parent project's `studio-ui.css` and follow `STUDIO_UI_SYSTEM.md` when available.
+
 ## Workflow
 
 1. Add one or more PNG files with the file picker or drop them in the frame panel. A multi-file batch is sorted naturally by filename (`frame2.png` before `frame10.png`). Files added later are appended.
@@ -29,6 +33,7 @@ The demon-maid PNG sources and animation frames are kept outside this project in
 
 - `index.html`: independent studio interface and metadata
 - `styles.css`: responsive light/dark editor styling
+- `studio-ui.css`: local copy of the framework-free shared Pixel Studio family tokens/components. Kept inside this project so independent deployment has no parent-directory dependency.
 - `app.js`: PNG sequence handling, preview, palette generation and GIF89a/LZW encoder
 - `favicon.svg`: project icon
 - `favicon.png`, `apple-touch-icon.png`: raster browser/search and iOS icons
